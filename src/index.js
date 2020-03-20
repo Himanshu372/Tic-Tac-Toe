@@ -25,6 +25,10 @@ class Board extends React.Component {
   handleClick(i){
     /*slice() creates a copy of the existing squares Array*/
     const squares = this.state.squares.slice();
+    /* Return if winner is found or square is already filled*/
+    if (calcWinner(squares) || checkDraw(squares) || squares[i]){
+        return;
+    }
     squares[i] = this.state.xisNext?'X':'O';
     this.setState({squares: squares,
                    xisNext: !this.state.xisNext});
@@ -33,13 +37,22 @@ class Board extends React.Component {
   renderSquare(i) {
     return(
             <Square value={this.state.squares[i]}
-            onClick={() => this.handleClick(i)}
-            />
+            onClick={() => this.handleClick(i)}/>
           );
   }
 
   render() {
-    const status = 'Next player:' + (this.state.xisNext?'X':'O');
+    const winner = calcWinner(this.state.squares);
+    let status; 
+    if (winner){
+      status = 'Winner is player:' + winner;
+    }
+    else if (checkDraw(this.state.squares)){
+        status = "It's a draw";
+    }
+    else {
+      status = 'Next player:' + (this.state.xisNext?'X':'O');
+    }
 
     return (
       <div>
@@ -93,14 +106,24 @@ function calcWinner(squares){
     [0, 4, 8],
     [2, 4, 6],
   ];
-  for (let i = 0; i < lines.lenght; i++){
+  for (let i = 0; i < lines.length; i++){
     const [a, b, c] = lines[i]
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }
   }
+  return null;
 }
 
+/*Function to check for a draw*/
+function checkDraw(squares){
+    for (let i = 0; i < squares.length; i++){
+        if (squares[i] === null) {
+            return false;
+        }
+    }
+    return true;
+}
 // ========================================
 
 ReactDOM.render(
