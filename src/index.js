@@ -14,49 +14,17 @@ function Square(props) {
   }
 
 class Board extends React.Component {
-  constructor(props){
-    super(props);
-    this.state = {
-      squares: Array(9).fill(null),
-      xisNext: true,
-    };  
-  }
-
-  handleClick(i){
-    /*slice() creates a copy of the existing squares Array*/
-    const squares = this.state.squares.slice();
-    /* Return if winner is found or square is already filled*/
-    if (calcWinner(squares) || checkDraw(squares) || squares[i]){
-        return;
-    }
-    squares[i] = this.state.xisNext?'X':'O';
-    this.setState({squares: squares,
-                   xisNext: !this.state.xisNext});
-  }
 
   renderSquare(i) {
     return(
-            <Square value={this.state.squares[i]}
-            onClick={() => this.handleClick(i)}/>
+            <Square value={this.props.squares[i]}
+            onClick={() => this.props.onClick(i)}/>
           );
   }
 
   render() {
-    const winner = calcWinner(this.state.squares);
-    let status; 
-    if (winner){
-      status = 'Winner is player:' + winner;
-    }
-    else if (checkDraw(this.state.squares)){
-        status = "It's a draw";
-    }
-    else {
-      status = 'Next player:' + (this.state.xisNext?'X':'O');
-    }
-
     return (
       <div>
-        <div className="status">{status}</div>
         <div className="board-row">
           {this.renderSquare(0)}
           {this.renderSquare(1)}
@@ -81,23 +49,78 @@ class Game extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-        history: [
-            Array(9).fill(null);
-        ];
+        history: [{
+            squares: Array(9).fill(null),
+        }],
+        stepNumber: 0,
+        xisNext: true,
     }
   }
+
+   handleClick(i){
+      /*slice() creates a copy of the existing squares Array*/
+      const history = this.state.history.slice(0, this.state.stepNumber + 1);
+      const current = history[history.length - 1];
+      const squares = current.squares.slice();
+      /* Return if winner is found or square is already filled*/
+      if (calcWinner(squares) || checkDraw(squares) || squares[i]){
+        return;
+      }
+     squares[i] = this.state.xisNext?'X':'O';
+     this.setState({
+                    history: history.concat([{
+                     squares: squares,
+                    }]),
+                    stepNumber: history.length,
+                    xisNext: !this.state.xisNext,
+     });
+  }
+
+  jumpTo(step){
+      this.setState({
+          stepNumber: step,
+          xisNext: (step % 2) ===0,
+        });
+  }
+
   render() {
-    return (
-      <div className="game">
-        <div className="game-board">
-          <Board />
-        </div>
-        <div className="game-info">
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
-        </div>
-      </div>
-    );
+      const history = this.state.history;
+      const current = history[this.state.stepNumber];
+      const winner = calcWinner(current.squares);
+      const draw = checkDraw(current.squares);
+      /*logic for navigating history button*/
+      const moves = history.map((step, move) => {
+          const desc = move? 'Go to the move #' + move:'Go to the start of the game';
+          return (
+              <li key={move}>
+                  <button onClick={() => this.jumpTo(move)}>{desc}</button>
+              </li>
+          );
+      });
+      let status;
+      if (winner){
+          status = 'Winner is player:' + winner;
+        }
+        else if (draw){
+            status = "It's a draw";
+        }
+        else {
+          status = 'Next player:' + (this.state.xisNext?'X':'O');
+        }
+        return (
+          <div className="game">
+            <div className="game-board">
+              <Board
+                  squares={current.squares}
+                  onClick={(i) => this.handleClick(i)}
+              />
+            </div>
+            <div className="game-info">
+              <div>{status}</div>
+              <ol>{moves}</ol>
+            </div>
+          </div>
+        );
   }
 }
 
