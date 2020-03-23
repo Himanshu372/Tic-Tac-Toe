@@ -53,6 +53,7 @@ class Game extends React.Component {
             squares: Array(9).fill(null),
         }],
         stepNumber: 0,
+        position: null,
         xisNext: true,
     }
   }
@@ -62,6 +63,7 @@ class Game extends React.Component {
       const history = this.state.history.slice(0, this.state.stepNumber + 1);
       const current = history[history.length - 1];
       const squares = current.squares.slice();
+      const position = i;
       /* Return if winner is found or square is already filled*/
       if (calcWinner(squares) || checkDraw(squares) || squares[i]){
         return;
@@ -72,6 +74,7 @@ class Game extends React.Component {
                      squares: squares,
                     }]),
                     stepNumber: history.length,
+                    position: position,
                     xisNext: !this.state.xisNext,
      });
   }
@@ -88,12 +91,22 @@ class Game extends React.Component {
       const current = history[this.state.stepNumber];
       const winner = calcWinner(current.squares);
       const draw = checkDraw(current.squares);
+      /*Logic for to get row, col*/
+      const position = this.state.position;
+      const row = Math.floor(position / 3) + 1;
+      const col = position % 3 + 1;
+      /**/
+      const stepNumber = this.state.stepNumber;
+
       /*logic for navigating history button*/
       const moves = history.map((step, move) => {
-          const desc = move? 'Go to the move #' + move:'Go to the start of the game';
+
+          const desc = move? 'Go to ('+ row + ',' + col + ')' :'Go to the start of the game';
           return (
               <li key={move}>
-                  <button onClick={() => this.jumpTo(move)}>{desc}</button>
+                  <button
+                      className={move === stepNumber? 'move-list-item-selected': ''}
+                      onClick={() => this.jumpTo(move)}>{desc}</button>
               </li>
           );
       });
@@ -155,6 +168,7 @@ function checkDraw(squares){
     }
     return true;
 }
+
 // ========================================
 
 ReactDOM.render(
