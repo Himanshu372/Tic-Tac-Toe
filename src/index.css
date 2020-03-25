@@ -52,3 +52,8 @@ ol, ul {
 .move-list-item-selected{
   font-weight: bold;
 }
+
+
+.square.highlight {
+  background: #ddd
+}
